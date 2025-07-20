@@ -55,6 +55,11 @@ static uint8_t PADDING[] = {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 #define H(X, Y, Z) (X ^ Y ^ Z)
 #define I(X, Y, Z) (Y ^ (X | ~Z))
 
+void md5Init(MD5Context *ctx);
+void md5Update(MD5Context *ctx, uint8_t *input, size_t input_len);
+void md5Finalize(MD5Context *ctx);
+void md5Step(uint32_t *buffer, uint32_t *input);
+
 /*
  * Rotates a 32-bit word left by n bits
  */
@@ -195,29 +200,8 @@ void md5Step(uint32_t *buffer, uint32_t *input){
  * Functions that run the algorithm on the provided input and put the digest into result.
  * result should be able to store 16 bytes.
  */
-void md5String(char *input, uint8_t *result){
-    MD5Context ctx;
-    md5Init(&ctx);
-    md5Update(&ctx, (uint8_t *)input, strlen(input));
-    md5Finalize(&ctx);
-
-    memcpy(result, ctx.digest, 16);
-}
-
-void md5File(FILE *file, uint8_t *result){
-    char *input_buffer = malloc(1024);
-    size_t input_size = 0;
-
-    MD5Context ctx;
-    md5Init(&ctx);
-
-    while((input_size = fread(input_buffer, 1, 1024, file)) > 0){
-        md5Update(&ctx, (uint8_t *)input_buffer, input_size);
-    }
-
-    md5Finalize(&ctx);
-
-    free(input_buffer);
-
-    memcpy(result, ctx.digest, 16);
+void md5Calc(MD5Context *ctx, uint8_t *input, uint32_t len){
+    md5Init(ctx);
+    md5Update(ctx, input, len);
+    md5Finalize(ctx);
 }
